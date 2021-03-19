@@ -1,0 +1,148 @@
+class Spamc
+{
+	private $address = none;
+	private $port = none;
+	private $timeout = none;
+	private $mail = none;
+	private $user = none;
+	private $sender = none;
+	private $sizelimit = none;
+	private $conn = none;
+	private $socket = none;
+	private $tls = none;
+
+	constructor($address, $mail, $opts = [])
+	{
+		$this->address = $address;
+		$this->port = $opts["port"] ?? 783;
+		$this->timeout = $opts["timeout"] ?? 30;
+		$this->mail = $mail;
+		$this->user = $opts["user"] ?? none;
+		$this->sender = $opts["sender"] ?? none;
+		$this->sizelimit = $opts["size_limit"] ?? 500 * 1024;
+		$this->tls = $opts["tls"] ?? ["enabled" => false];
+	}
+
+	function ping()
+	{
+		if (!$this->__connect()) return;
+		if (!$this->socket->send("PING SPAMC/1.5\r\n\r\n")) return;
+
+		$result = "";
+		while ($resp = $this->socket->recv(8192))
+			$result .= $resp;
+
+		$this->__disconnect();
+
+		if (!$result) return;
+		if (str_find($result, "PONG") != -1) return true;
+		return false;
+	}
+
+	function check()
+	{
+		$s = $this->__getSize();
+		if ($s > $this->sizelimit) return;
+
+		if (!$this->__connect()) return;
+
+		$str = "CHECK SPAMC/1.5\r\n";
+		$str .= "Content-length: $s\r\n";
+		if ($this->user) $str .= "User: ".$this->user."\r\n";
+		$str .= "\r\n";
+		if (!$this->socket->send($str)) return;
+
+		if ($this->sender)
+			$this->socket->send("Return-Path: <".$this->sender.">\r\n");
+		$this->mail->seek(0, "SEEK_SET");
+		while ($str = $this->mail->read(8192))
+			if (!$this->socket->send($str))
+				return;
+
+		$result = "";
+		while ($resp = $this->socket->recv(8192))
+			$result .= $resp;
+
+		$this->__disconnect();
+
+		if (!$result) return;
+		if (!pcre_match("EX_OK", $result)) return;
+
+		$result = pcre_match(''Spam: (.*) ; (.*) / (.*)\r\n'', $result);
+
+		return [
+			"spam" => $result[1] == "True" ? true : false,
+			"score" => number($result[2]),
+			"thres" => number($result[3])
+		];
+	}
+
+	function symbols()
+	{
+		$s = $this->__getSize();
+		if ($s > $this->sizelimit) return;
+
+		if (!$this->__connect()) return;
+
+		$str = "SYMBOLS SPAMC/1.5\r\n";
+		$str .= "Content-length: $s\r\n";
+		if ($this->user) $str .= "User: ".$this->user."\r\n";
+		$str .= "\r\n";
+		if (!$this->socket->send($str)) return;
+
+		if ($this->sender)
+			$this->socket->send("Return-Path: <".$this->sender.">\r\n");
+		$this->mail->seek(0, "SEEK_SET");
+		while ($str = $this->mail->read(8192))
+			if (!$this->socket->send($str))
+				return;
+
+		$result = "";
+		while ($resp = $this->socket->recv(8192))
+			$result .= $resp;
+
+		$this->__disconnect();
+
+		if (!$result) return;
+		if (!pcre_match("EX_OK", $result)) return;
+
+		$result = pcre_match(''Spam: (.*) ; (.*) / (.*)\r\n\r\n(.*)'', $result);
+
+		return [
+			"spam" => $result[1] == "True" ? true : false,
+			"score" => number($result[2]),
+			"thres" => number($result[3]),
+			"symbols" => explode(",", $result[4])
+		];
+	}
+
+	private function __connect()
+	{
+		$this->conn = $this->socket = Socket(Socket::AF($this->address), "SOCK_STREAM");
+		if (!$this->socket->settimeout($this->timeout)) return;
+		if (!$this->socket->connect($this->address, $this->port)) return;
+		if ($this->tls["enabled"]) {
+			$this->socket = TLSSocket($this->socket, $this->tls["opts"] ?? []);
+			if (!$this->socket->handshake()) return;
+		}
+		return true;
+	}
+
+	private function __disconnect()
+	{
+		if (!$this->conn)
+			return;
+
+		$this->conn->shutdown("SHUT_RDWR");
+		$this->conn->close();
+	}
+
+	private function __getSize()
+	{
+		$s = $this->mail->seek(0, "SEEK_END");
+		$this->mail->seek(0, "SEEK_SET");
+		if ($this->sender)
+			$s += length("Return-Path: <".$this->sender.">\r\n");
+		return $s;
+	}
+}

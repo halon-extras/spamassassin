@@ -1,1 +1,1 @@
-import { spamc } from "./spamassassin.hsl";
+import { spamc } from "./spamc.hsl";

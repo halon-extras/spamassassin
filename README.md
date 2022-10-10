@@ -1,4 +1,26 @@
-## spamc(fp[, options])
+# SpamAssassin client
+
+## Installation
+
+Follow the [instructions](https://docs.halon.io/manual/comp_install.html#installation) in our manual to add our package repository and then run the below command.
+
+### Ubuntu
+
+```
+apt-get install halon-extras-spamassassin
+```
+
+### RHEL
+
+```
+yum install halon-extras-spamassassin
+```
+
+## Exported functions
+
+These functions needs to be [imported](https://docs.halon.io/hsl/structures.html#import) from the `extras://spamassassin` module path.
+
+### spamc(fp[, options])
 
 Client for the [SpamAssassin (spamd) Network Protocol](https://github.com/apache/spamassassin/blob/trunk/spamd/PROTOCOL).
 

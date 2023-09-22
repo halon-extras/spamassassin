@@ -9,6 +9,7 @@ function spamc($fp, $opts = [])
 	$user = $opts["user"] ?? none;
 	$sender = $opts["sender"] ?? none;
 	$sizelimit = $opts["size_limit"] ?? 500 * 1024;
+	$report = $opts["report"] ?? false;
 
 	$s = $fp->seek(0, "SEEK_END");
 	$fp->seek(0, "SEEK_SET");
@@ -25,7 +26,12 @@ function spamc($fp, $opts = [])
 		if (!$socket->handshake()) return ["error" => "Could not perform TLS handshake"];
 	}
 
-	$str = "REPORT SPAMC/1.5\r\n";
+	if($report)
+	{
+		$str = "REPORT SPAMC/1.5\r\n";
+	} else {
+		$str = "SYMBOLS SPAMC/1.5\r\n";
+	}
 	$str .= "Content-length: $s\r\n";
 	if ($user) $str .= "User: ".$user."\r\n";
 	$str .= "\r\n";
@@ -48,23 +54,22 @@ function spamc($fp, $opts = [])
 	if (!$result) return ["error" => "No scan result"];
 	if (!pcre_match("EX_OK", $result)) return ["error" => "Bad scan result"];
 
-	$spam_result = pcre_match(''Spam: (.*) ; (.*) / (.*)'', $result);
-	$spam_report = pcre_match(''/--\n([ \-\d]\d.*\n)+/s'', $result);
-	$spam_report = str_strip($spam_report[1]);
-
-	$symbol_scores = [];
-	$symbols = [];
-	foreach(str_split($spam_report,"\n") as $line) {
-		$symbol_value = pcre_match(''([ \-\d][\d\.]+)\s(\w+)'',$line);
-		$symbol_scores[$symbol_value[2]] = $symbol_value[1];
-		$symbols[] = $symbol_value[2];
+	$sa_result = pcre_match(''Spam: (.*) ; (.*) / (.*)\r\n\r\n(.*)'', $result);
+	if($report)
+	{
+		$symbols = [];
+		if ($match = pcre_match_all(#/^\s*(-?\d+(?:\.\d+)?) ([^\s]+)/m, $result))
+		  $symbols = array_map(number, array_combine(...array_reverse($match[1:])));
+		
+	} else {
+		$symbols = explode(",", $sa_result[4]);
 	}
 
 	return [
-		"spam" => $spam_result[1] == "True" ? true : false,
-		"score" => number($spam_result[2]),
-		"threshold" => number($spam_result[3]),
-		"symbols" => $symbols,
-		"symbol_scores" => $symbol_scores
+		"spam" => $sa_result[1] == "True" ? true : false,
+		"score" => number($sa_result[2]),
+		"threshold" => number($sa_result[3]),
+		"symbols" => $symbols
 	];
+
 }

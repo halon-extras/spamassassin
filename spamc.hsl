@@ -27,11 +27,10 @@ function spamc($fp, $opts = [])
 	}
 
 	if($report)
-	{
 		$str = "REPORT SPAMC/1.5\r\n";
-	} else {
+	else
 		$str = "SYMBOLS SPAMC/1.5\r\n";
-	}
+
 	$str .= "Content-length: $s\r\n";
 	if ($user) $str .= "User: ".$user."\r\n";
 	$str .= "\r\n";
@@ -59,9 +58,10 @@ function spamc($fp, $opts = [])
 	{
 		$symbols = [];
 		if ($match = pcre_match_all(#/^\s*(-?\d+(?:\.\d+)?) ([^\s]+)/m, $result))
-		  $symbols = array_map(number, array_combine(...array_reverse($match[1:])));
-		
-	} else {
+			$symbols = array_map(number, array_combine(...array_reverse($match[1:])));
+	}
+	else
+	{
 		$symbols = explode(",", $sa_result[4]);
 	}
 
@@ -71,5 +71,4 @@ function spamc($fp, $opts = [])
 		"threshold" => number($sa_result[3]),
 		"symbols" => $symbols
 	];
-
 }

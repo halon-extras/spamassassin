@@ -37,6 +37,7 @@ function spamc($fp, $opts = [])
 	while ($str = $fp->read(8192))
 		if (!$socket->send($str))
 			return ["error" => "Could not send content"];
+	$conn->shutdown("SHUT_WR");
 
 	$result = "";
 	while ($resp = $socket->recv(8192))

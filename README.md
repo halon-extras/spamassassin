@@ -41,10 +41,11 @@ The following options are available in the **opts** array.
 - size_limit `number` - Size limit in bytes. The default is 512 000.
 - timeout `number` - Timeout in seconds. The default is 30 seconds.
 - tls `array` - TLS settings.
+- report `boolean` - Return symbols including scores per symbol. The default is false
 
 The following options are available in the **tls** array.
 
 - enabled `boolean` - Enable TLS for the specific socket
 - opts `array` - All available options can be found on [here](http://docs.halon.se/hsl/functions.html?highlight=tlssocket#TLSSocket)
 
-**Returns**: An associative array with a `spam` (boolean) if the message is spam, `score` (number) representing the spam score, `threshold` (number) representing the spam limit and a `symbols` property contaning all matched symbols (string). If an error occures an `error` property (string) is set containing the error message.
+**Returns**: An associative array with a `spam` (boolean) if the message is spam, `score` (number) representing the spam score, `threshold` (number) representing the spam limit and a `symbols` property contaning all matched symbols (string) or in case of report = true all matched symboly with their corresponding scores. If an error occures an `error` property (string) is set containing the error message.

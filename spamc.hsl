@@ -54,12 +54,15 @@ function spamc($fp, $opts = [])
 	if (!$result) return ["error" => "No scan result"];
 	if (!pcre_match("EX_OK", $result)) return ["error" => "Bad scan result"];
 
-	$sa_result = pcre_match(''Spam: (.*) ; (.*) / (.*)\r\n\r\n(.*)'', $result);
+	$sa_result = pcre_match(#/Spam: (.*) ; (.*) \/ (.*)\r\n\r\n(.*)/, $result);
 	if ($report)
 	{
 		$symbols = [];
-		if ($match = pcre_match_all(#/^\s*(-?\d+(?:\.\d+)?) ([^\s]+)/m, $result))
+		if (($symbol_section = str_find($result, "\n---")) != -1 and
+			($match = pcre_match_all(#/^\s*(-?\d+(?:\.\d+)?) ([^\s]+)/m, $result[$symbol_section:])))
+		{
 			$symbols = array_map(number, array_combine(...array_reverse($match[1:])));
+		}
 	}
 	else
 	{

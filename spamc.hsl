@@ -10,6 +10,7 @@ function spamc($fp, $opts = [])
 	$sender = $opts["sender"] ?? none;
 	$sizelimit = $opts["size_limit"] ?? 500 * 1024;
 	$report = $opts["report"] ?? false;
+	$symbols_unparsed = $opts["symbols_unparsed"] ?? false;
 
 	$s = $fp->seek(0, "SEEK_END");
 	$fp->seek(0, "SEEK_SET");
@@ -61,7 +62,11 @@ function spamc($fp, $opts = [])
 		if ($sa_result)
 			break;
 	}
-	if ($report)
+	if ($symbols_unparsed)
+	{
+		$symbols = $body ?? "";
+	}
+	else if ($report)
 	{
 		$symbols = [];
 		if ($body and ($symbol_section = str_find($body, "\n---")) != -1 and

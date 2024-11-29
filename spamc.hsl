@@ -64,7 +64,7 @@ function spamc($fp, $opts = [])
 	}
 	if ($symbols_unparsed)
 	{
-		$symbols = $body ?? "";
+		$symbols = [$body ?? ""];
 	}
 	else if ($report)
 	{

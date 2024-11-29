@@ -42,7 +42,7 @@ The following options are available in the **opts** array.
 - timeout `number` - Timeout in seconds. The default is 30 seconds.
 - tls `array` - TLS settings.
 - report `boolean` - Return symbols including scores per symbol. The default is false
-- symbols_unparsed `boolean` - Return the response body unparsed as a string in symbols response. The default is false
+- symbols_unparsed `boolean` - Return the response body unparsed as one symbol in the response. The default is false
 
 The following options are available in the **tls** array.
 
@@ -54,4 +54,4 @@ If the request was successful, an associative array with the following propertie
 - `spam` (boolean) if the message is spam
 - `score` (number) representing the spam score
 - `threshold` (number) representing the spam limit
-- `symbols` property contaning all matched symbols as an array of strings, or in case of `report` is true all matched symbols with their corresponding scores, or in case of `symbols_unparsed` is true the response body string (unparsed).
+- `symbols` (array) property contaning all matched symbols as an array of strings, or in case of `report` is true all matched symbols with their corresponding scores, or in case of `symbols_unparsed` is true the response body is returned as a single symbol (unparsed).

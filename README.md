@@ -49,9 +49,9 @@ The following options are available in the **tls** array.
 - enabled `boolean` - Enable TLS for the specific socket
 - opts `array` - All available options can be found on [here](http://docs.halon.se/hsl/functions.html?highlight=tlssocket#TLSSocket)
 
-If the request was successful, an associative array with the following properties (below) are returned. If an error occures an `error` property (string) is set containing the error message.
+If the request was successful, an associative array with the following properties (below) are returned. If an error occurs an `error` property (string) is set containing the error message.
 
 - `spam` (boolean) if the message is spam
 - `score` (number) representing the spam score
 - `threshold` (number) representing the spam limit
-- `symbols` (array) property contaning all matched symbols as an array of strings, or in case of `report` is true all matched symbols with their corresponding scores, or in case of `symbols_unparsed` is true the response body is returned as a single symbol (unparsed).
+- `symbols` (array) property containing all matched symbols as an array of strings, or in case of `report` is true all matched symbols with their corresponding scores, or in case of `symbols_unparsed` is true the response body is returned as a single symbol (unparsed).
